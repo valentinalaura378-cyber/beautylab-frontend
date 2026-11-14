@@ -3,4 +3,4 @@
  * - Desarrollo local: el backend corre en el puerto 3000.
  * - Producción: cámbiala por la URL donde despliegues el backend (por ejemplo Render).
  */
-export const API_URL = 'http://localhost:3000/api/v1';
+export const API_URL = 'https://beautylab-backend.onrender.com/api/v1';
