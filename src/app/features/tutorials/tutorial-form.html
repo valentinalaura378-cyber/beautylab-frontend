@@ -1,0 +1,144 @@
+<div class="page">
+  <div class="container narrow">
+    <div class="page-header">
+      <h1>{{ editingId() ? 'Editar tutorial' : 'Compartir un tutorial' }}</h1>
+      <p>Explica una técnica paso a paso para que otras personas puedan aprenderla.</p>
+    </div>
+
+    @if (loading()) {
+      <div class="loading">Cargando…</div>
+    } @else {
+      @if (error()) {
+        <div class="alert">{{ error() }}</div>
+      }
+
+      <div class="card">
+        <h2>Información general</h2>
+        <div class="field">
+          <label for="title">Título *</label>
+          <input id="title" class="input" maxlength="120" placeholder="Ej: Delineado clásico paso a paso" [(ngModel)]="title" />
+        </div>
+        <div class="field">
+          <label for="summary">Resumen *</label>
+          <textarea id="summary" class="input" maxlength="300" rows="2" placeholder="¿Qué se aprende en este tutorial?" [(ngModel)]="summary"></textarea>
+        </div>
+        <div class="field">
+          <label for="desc">Descripción (opcional)</label>
+          <textarea id="desc" class="input" rows="3" maxlength="2000" [(ngModel)]="description"></textarea>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="cat">Categoría *</label>
+            <select id="cat" class="input" [(ngModel)]="categoryId">
+              <option value="">Selecciona…</option>
+              @for (c of catalog.categories(); track c._id) {
+                <option [value]="c._id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label for="level">Nivel *</label>
+            <select id="level" class="input" [(ngModel)]="level">
+              @for (l of levels; track l.value) {
+                <option [value]="l.value">{{ l.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label for="style">Estilo</label>
+            <input id="style" class="input" placeholder="Natural, glam, ahumado…" [(ngModel)]="style" />
+          </div>
+          <div class="field">
+            <label for="dur">Duración (minutos)</label>
+            <input id="dur" class="input" type="number" min="1" max="600" [(ngModel)]="durationMinutes" />
+          </div>
+          <div class="field">
+            <label for="cover">Imagen de portada (URL)</label>
+            <input id="cover" class="input" type="url" placeholder="https://…" [(ngModel)]="coverImage" />
+          </div>
+          <div class="field">
+            <label for="video">Video (URL)</label>
+            <input id="video" class="input" type="url" placeholder="https://youtube.com/…" [(ngModel)]="videoUrl" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="tags">Etiquetas (separadas por coma)</label>
+          <input id="tags" class="input" placeholder="principiantes, natural, ojos" [(ngModel)]="tagsText" />
+          <div class="row">
+            @for (t of tagSuggestions(); track t._id) {
+              <button type="button" class="chip as-btn" (click)="addTag(t.name)">+ {{ t.name }}</button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Pasos *</h2>
+        @for (s of steps(); track $index) {
+          <div class="step-box">
+            <div class="row between">
+              <strong>Paso {{ $index + 1 }}</strong>
+              <span class="row">
+                <button type="button" class="btn btn-ghost btn-sm" [disabled]="$index === 0" (click)="moveStep($index, -1)" aria-label="Subir">↑</button>
+                <button type="button" class="btn btn-ghost btn-sm" [disabled]="$index === steps().length - 1" (click)="moveStep($index, 1)" aria-label="Bajar">↓</button>
+                <button type="button" class="btn btn-danger btn-sm" [disabled]="steps().length === 1" (click)="removeStep($index)">Quitar</button>
+              </span>
+            </div>
+            <div class="field">
+              <label>Título del paso</label>
+              <input class="input" maxlength="120" [(ngModel)]="s.title" />
+            </div>
+            <div class="field">
+              <label>Descripción</label>
+              <textarea class="input" rows="2" maxlength="1000" [(ngModel)]="s.description"></textarea>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label>Imagen del paso (URL, opcional)</label>
+                <input class="input" type="url" [(ngModel)]="s.imageUrl" />
+              </div>
+              <div class="field">
+                <label>Consejo (opcional)</label>
+                <input class="input" maxlength="300" [(ngModel)]="s.tip" />
+              </div>
+            </div>
+          </div>
+        }
+        <button type="button" class="btn btn-outline" (click)="addStep()">+ Agregar paso</button>
+      </div>
+
+      <div class="card">
+        <h2>Productos recomendados</h2>
+        <p class="muted small">Selecciona los productos que se usan en este tutorial.</p>
+        <div class="products">
+          @for (p of products(); track p._id) {
+            <label class="prod" [class.on]="selectedProducts().includes(p._id)">
+              <input type="checkbox" [checked]="selectedProducts().includes(p._id)" (change)="toggleProduct(p._id)" />
+              <span>{{ p.name }} <small class="muted">· {{ p.brand }}</small></span>
+            </label>
+          } @empty {
+            <p class="muted small">Aún no hay productos en el catálogo.</p>
+          }
+        </div>
+      </div>
+
+      <div class="card row between">
+        <div class="field no-margin">
+          <label for="status">Estado</label>
+          <select id="status" class="input" [(ngModel)]="status">
+            <option value="published">Publicado (visible para todos)</option>
+            <option value="draft">Borrador (solo tú)</option>
+          </select>
+        </div>
+        <div class="row">
+          <a class="btn btn-ghost" routerLink="/mi-aprendizaje">Cancelar</a>
+          <button type="button" class="btn btn-primary" [disabled]="saving()" (click)="save()">
+            {{ saving() ? 'Guardando…' : editingId() ? 'Guardar cambios' : 'Publicar tutorial' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

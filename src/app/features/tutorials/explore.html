@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="container">
+    <div class="page-header">
+      <h1>Explorar tutoriales</h1>
+      <p>Encuentra la técnica que quieres aprender por categoría, nivel o palabra clave.</p>
+    </div>
+
+    <div class="card filters">
+      <input class="input" type="search" placeholder="Buscar: delineado, labios, cejas…"
+             [(ngModel)]="search" (keyup.enter)="apply()" />
+      <select class="input" [(ngModel)]="categoryId" (change)="apply()">
+        <option value="">Todas las categorías</option>
+        @for (c of catalog.categories(); track c._id) {
+          <option [value]="c._id">{{ c.name }}</option>
+        }
+      </select>
+      <select class="input" [(ngModel)]="level" (change)="apply()">
+        <option value="">Todos los niveles</option>
+        @for (l of levels; track l.value) {
+          <option [value]="l.value">{{ l.label }}</option>
+        }
+      </select>
+      <select class="input" [(ngModel)]="sort" (change)="apply()">
+        <option value="recent">Más recientes</option>
+        <option value="rating">Mejor valorados</option>
+        <option value="popular">Más vistos</option>
+      </select>
+      <button type="button" class="btn btn-primary" (click)="apply()">Buscar</button>
+      @if (hasFilters()) {
+        <button type="button" class="btn btn-ghost" (click)="clear()">Limpiar</button>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="loading">Cargando tutoriales…</div>
+    } @else if (failed()) {
+      <div class="alert">No pudimos cargar los tutoriales. Revisa tu conexión e inténtalo de nuevo.</div>
+    } @else if (result(); as r) {
+      @if (r.items.length === 0) {
+        <div class="empty">
+          <span class="emoji">🔎</span>
+          No encontramos tutoriales con esos filtros. Prueba con otra búsqueda.
+        </div>
+      } @else {
+        <p class="muted small">{{ r.total }} {{ r.total === 1 ? 'tutorial encontrado' : 'tutoriales encontrados' }}</p>
+        <div class="grid">
+          @for (t of r.items; track t._id) {
+            <app-tutorial-card [tutorial]="t" />
+          }
+        </div>
+
+        @if (r.pages > 1) {
+          <div class="row pager">
+            <button type="button" class="btn btn-ghost btn-sm" [disabled]="r.page <= 1" (click)="apply(r.page - 1)">← Anterior</button>
+            <span class="muted small">Página {{ r.page }} de {{ r.pages }}</span>
+            <button type="button" class="btn btn-ghost btn-sm" [disabled]="r.page >= r.pages" (click)="apply(r.page + 1)">Siguiente →</button>
+          </div>
+        }
+      }
+    }
+  </div>
+</div>

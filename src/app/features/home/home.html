@@ -1,0 +1,124 @@
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="badge">✨ Plataforma web educativa de maquillaje</span>
+      <h1>Aprende maquillaje <em>paso a paso</em> y comparte lo que sabes</h1>
+      <p class="lead">
+        Reunimos en un solo lugar tutoriales, técnicas, estilos y consejos para que aprendas de forma
+        organizada, a tu ritmo y junto a una comunidad.
+      </p>
+      <div class="row">
+        <a routerLink="/explorar" class="btn btn-primary">Explorar tutoriales</a>
+        @if (auth.isLoggedIn()) {
+          <a routerLink="/tutoriales/nuevo" class="btn btn-outline">Compartir un tutorial</a>
+        } @else {
+          <a routerLink="/acceder" [queryParams]="{ modo: 'registro' }" class="btn btn-outline">Crear cuenta gratis</a>
+        }
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="bubble b1">💄</div>
+      <div class="bubble b2">👁️</div>
+      <div class="bubble b3">✨</div>
+      <div class="bubble b4">🎨</div>
+    </div>
+  </div>
+</section>
+
+@if (stats(); as s) {
+  <section class="stats">
+    <div class="container stats-grid">
+      <div><strong>{{ s.tutorials }}</strong><span>Tutoriales</span></div>
+      <div><strong>{{ s.creators }}</strong><span>Creadores</span></div>
+      <div><strong>{{ s.learners }}</strong><span>Personas aprendiendo</span></div>
+      <div><strong>{{ s.comments }}</strong><span>Comentarios</span></div>
+    </div>
+  </section>
+}
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title center">¿Cómo funciona BeautyLab?</h2>
+    <p class="section-sub center">Aprendizaje digital y colaborativo con el maquillaje como eje central.</p>
+    <div class="grid pillars">
+      @for (p of pillars; track p.title) {
+        <div class="card center">
+          <div class="pillar-icon">{{ p.icon }}</div>
+          <h3>{{ p.title }}</h3>
+          <p class="muted">{{ p.text }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="container">
+    <div class="row between">
+      <div>
+        <h2 class="section-title">Explora por categoría</h2>
+        <p class="section-sub">Elige la técnica que quieres aprender hoy.</p>
+      </div>
+      <a routerLink="/categorias">Ver todas →</a>
+    </div>
+    <div class="cats">
+      @for (c of catalog.categories(); track c._id) {
+        <a class="cat" routerLink="/explorar" [queryParams]="{ categoryId: c._id }">
+          <span class="cat-icon">{{ c.icon || '💄' }}</span>
+          <strong>{{ c.name }}</strong>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="row between">
+      <div>
+        <h2 class="section-title">Tutoriales recientes</h2>
+        <p class="section-sub">Lo último que ha publicado la comunidad.</p>
+      </div>
+      <a routerLink="/explorar">Ver todos →</a>
+    </div>
+
+    @if (loading()) {
+      <div class="loading">Cargando tutoriales…</div>
+    } @else if (latest().length === 0) {
+      <div class="empty">
+        <span class="emoji">🌸</span>
+        Aún no hay tutoriales publicados. ¡Sé la primera persona en compartir uno!
+      </div>
+    } @else {
+      <div class="grid">
+        @for (t of latest(); track t._id) {
+          <app-tutorial-card [tutorial]="t" />
+        }
+      </div>
+    }
+  </div>
+</section>
+
+@if (topRated().length > 0) {
+  <section class="section alt">
+    <div class="container">
+      <h2 class="section-title">Mejor valorados</h2>
+      <p class="section-sub">Los tutoriales favoritos de la comunidad.</p>
+      <div class="grid">
+        @for (t of topRated(); track t._id) {
+          <app-tutorial-card [tutorial]="t" />
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<section class="cta">
+  <div class="container center">
+    <h2>¿Tienes una técnica que enseñar?</h2>
+    <p>Publica tu tutorial paso a paso y ayuda a otras personas a aprender.</p>
+    <a [routerLink]="auth.isLoggedIn() ? '/tutoriales/nuevo' : '/acceder'" class="btn btn-primary">
+      Compartir mi conocimiento
+    </a>
+  </div>
+</section>

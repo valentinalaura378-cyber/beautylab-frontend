@@ -1,0 +1,57 @@
+<header class="topbar">
+  <div class="container bar">
+    <a routerLink="/" class="logo" (click)="closeMenu()">Beauty<span>Lab</span> 💄</a>
+
+    <button class="burger" type="button" aria-label="Abrir menú" (click)="toggleMenu()">☰</button>
+
+    <nav class="menu" [class.open]="menuOpen()">
+      <a routerLink="/explorar" routerLinkActive="active" (click)="closeMenu()">Explorar</a>
+      <a routerLink="/categorias" routerLinkActive="active" (click)="closeMenu()">Categorías</a>
+      <a routerLink="/productos" routerLinkActive="active" (click)="closeMenu()">Productos</a>
+
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/mi-aprendizaje" routerLinkActive="active" (click)="closeMenu()">Mi aprendizaje</a>
+        <a routerLink="/mi-kit" routerLinkActive="active" (click)="closeMenu()">Mi kit</a>
+        @if (auth.isAdmin()) {
+          <a routerLink="/admin" routerLinkActive="active" (click)="closeMenu()">Admin</a>
+        }
+        <a routerLink="/notificaciones" class="bell" (click)="closeMenu()" aria-label="Notificaciones">
+          🔔
+          @if (learning.unread() > 0) {
+            <span class="count">{{ learning.unread() }}</span>
+          }
+        </a>
+        <a routerLink="/perfil" class="me" (click)="closeMenu()">{{ auth.user()?.name }}</a>
+        <button class="btn btn-primary btn-sm" type="button" (click)="goShare()">+ Compartir</button>
+        <button class="btn btn-ghost btn-sm" type="button" (click)="logout()">Salir</button>
+      } @else {
+        <a routerLink="/acceder" class="btn btn-primary btn-sm" (click)="closeMenu()">Ingresar</a>
+      }
+    </nav>
+  </div>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer class="footer">
+  <div class="container foot">
+    <div>
+      <strong class="logo">Beauty<span>Lab</span> 💄</strong>
+      <p class="small">Plataforma web educativa de maquillaje: aprende, practica y comparte.</p>
+    </div>
+    <div class="small links">
+      <a routerLink="/explorar">Explorar tutoriales</a>
+      <a routerLink="/categorias">Categorías</a>
+      <a routerLink="/productos">Productos</a>
+    </div>
+    <p class="small copy">© {{ year }} BeautyLab · Proyecto de Investigación II · Instituto Técnico Central</p>
+  </div>
+</footer>
+
+<div class="toasts" aria-live="polite">
+  @for (t of toast.toasts(); track t.id) {
+    <div class="toast" [class]="t.type" (click)="toast.dismiss(t.id)">{{ t.text }}</div>
+  }
+</div>

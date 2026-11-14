@@ -1,0 +1,83 @@
+<div class="page">
+  <div class="container">
+    <div class="page-header">
+      <h1>Administración ⚙️</h1>
+      <p>Gestiona el catálogo de BeautyLab y los usuarios de la plataforma.</p>
+    </div>
+
+    <div class="tabs">
+      @for (s of sections; track s.id) {
+        <button type="button" class="tab" [class.active]="active() === s.id" (click)="select(s.id)">{{ s.title }}</button>
+      }
+      <button type="button" class="tab" [class.active]="active() === 'users'" (click)="select('users')">Usuarios</button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading">Cargando…</div>
+    } @else if (active() === 'users') {
+      <div class="card scroll">
+        <table>
+          <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th></tr></thead>
+          <tbody>
+            @for (u of users(); track u.id) {
+              <tr>
+                <td>{{ u.name }}</td>
+                <td>{{ u.email }}</td>
+                <td>
+                  <select class="input" [disabled]="u.id === auth.user()?.id" [ngModel]="u.role" (ngModelChange)="changeRole(u, $event)">
+                    <option value="user">Usuario</option>
+                    <option value="admin">Administrador</option>
+                  </select>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else if (section(); as cfg) {
+      <div class="card form">
+        <h3>{{ editingId() ? 'Editar' : 'Nueva' }} {{ cfg.singular }}</h3>
+        <div class="form-grid">
+          @for (f of cfg.fields; track f.key) {
+            <div class="field">
+              <label>{{ f.label }}{{ f.required ? ' *' : '' }}</label>
+              <input class="input" [type]="f.type ?? 'text'" [(ngModel)]="form[f.key]" />
+            </div>
+          }
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-primary" (click)="save()">{{ editingId() ? 'Guardar cambios' : 'Crear' }}</button>
+          @if (editingId()) {
+            <button type="button" class="btn btn-ghost" (click)="resetForm()">Cancelar</button>
+          }
+        </div>
+      </div>
+
+      <div class="card scroll">
+        @if (rows().length === 0) {
+          <p class="muted center">No hay elementos todavía.</p>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                @for (f of cfg.fields; track f.key) { <th>{{ f.label }}</th> }
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of rows(); track r._id) {
+                <tr>
+                  @for (f of cfg.fields; track f.key) { <td>{{ cell(r, f.key) }}</td> }
+                  <td class="actions">
+                    <button type="button" class="btn btn-ghost btn-sm" (click)="edit(r)">Editar</button>
+                    <button type="button" class="btn btn-danger btn-sm" (click)="remove(r)">Eliminar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,50 @@
+.auth {
+  min-height: calc(100vh - 66px);
+  display: flex;
+  background: linear-gradient(135deg, #ff4f9a, #ff85b3, #ffc2d1);
+}
+.brand-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  background: linear-gradient(rgba(43, 33, 48, 0.55), rgba(43, 33, 48, 0.55)),
+    linear-gradient(135deg, #e0407f, #7c4dff);
+}
+.overlay {
+  color: #fff;
+  max-width: 460px;
+}
+.overlay h1 {
+  font-size: 3.2rem;
+}
+.overlay h1 span {
+  color: #ffb3d1;
+}
+.overlay ul {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.auth-card {
+  width: 480px;
+  max-width: 100%;
+  background: #fff;
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.auth-card h2 {
+  margin-bottom: 1.25rem;
+}
+.full {
+  width: 100%;
+}
+@media (max-width: 860px) {
+  .brand-side { display: none; }
+  .auth-card { width: 100%; }
+}

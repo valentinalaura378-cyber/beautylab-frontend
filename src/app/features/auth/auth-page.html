@@ -1,0 +1,47 @@
+<div class="auth">
+  <aside class="brand-side">
+    <div class="overlay">
+      <h1>Beauty<span>Lab</span></h1>
+      <p>Aprende técnicas de maquillaje paso a paso y comparte tus propios tutoriales con la comunidad ✨</p>
+      <ul>
+        <li>📚 Tutoriales organizados por categoría y nivel</li>
+        <li>✅ Avanza a tu propio ritmo</li>
+        <li>💬 Pregunta, comenta y resuelve dudas</li>
+      </ul>
+    </div>
+  </aside>
+
+  <section class="auth-card">
+    <div class="tabs">
+      <button type="button" class="tab" [class.active]="mode() === 'login'" (click)="setMode('login')">Iniciar sesión</button>
+      <button type="button" class="tab" [class.active]="mode() === 'register'" (click)="setMode('register')">Crear cuenta</button>
+    </div>
+
+    <h2>{{ mode() === 'login' ? 'Bienvenida 💄' : 'Crea tu cuenta ✨' }}</h2>
+
+    @if (error()) {
+      <div class="alert">{{ error() }}</div>
+    }
+
+    @if (mode() === 'register') {
+      <div class="field">
+        <label for="name">Nombre</label>
+        <input id="name" class="input" type="text" placeholder="¿Cómo te llamas?" [(ngModel)]="name" (keyup.enter)="submit()" />
+      </div>
+    }
+
+    <div class="field">
+      <label for="email">Correo electrónico</label>
+      <input id="email" class="input" type="email" placeholder="tucorreo@ejemplo.com" [(ngModel)]="email" (keyup.enter)="submit()" />
+    </div>
+
+    <div class="field">
+      <label for="password">Contraseña</label>
+      <input id="password" class="input" type="password" placeholder="Mínimo 6 caracteres" [(ngModel)]="password" (keyup.enter)="submit()" />
+    </div>
+
+    <button type="button" class="btn btn-primary full" [disabled]="loading()" (click)="submit()">
+      {{ loading() ? 'Un momento…' : mode() === 'login' ? 'Ingresar' : 'Registrarme' }}
+    </button>
+  </section>
+</div>

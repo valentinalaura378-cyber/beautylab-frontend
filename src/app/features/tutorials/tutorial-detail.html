@@ -1,0 +1,200 @@
+@if (loading()) {
+  <div class="page"><div class="loading">Cargando tutorial…</div></div>
+} @else if (notFound() || !tutorial()) {
+  <div class="page">
+    <div class="container">
+      <div class="empty">
+        <span class="emoji">🌫️</span>
+        Este tutorial no existe o ya no está disponible.
+        <p><a routerLink="/explorar" class="btn btn-primary">Explorar tutoriales</a></p>
+      </div>
+    </div>
+  </div>
+} @else if (tutorial(); as t) {
+  <section class="head" [style.background-image]="t.coverImage ? 'url(' + t.coverImage + ')' : null"
+           [style.background]="t.coverImage ? null : cover(t)">
+    <div class="shade">
+      <div class="container">
+        <div class="row">
+          <span class="badge" [class]="t.level">{{ t.level | levelLabel }}</span>
+          @if (t.category; as c) {
+            <a class="badge" routerLink="/explorar" [queryParams]="{ categoryId: c._id }">{{ c.icon }} {{ c.name }}</a>
+          }
+          @if (t.status === 'draft') { <span class="badge draft">Borrador</span> }
+        </div>
+        <h1>{{ t.title }}</h1>
+        <p class="summary">{{ t.summary }}</p>
+        <div class="row meta">
+          <a [routerLink]="['/explorar']" [queryParams]="{ authorId: t.authorId }">por {{ t.authorName }}</a>
+          <span>⏱ {{ t.durationMinutes ?? '—' }} min</span>
+          <span>📋 {{ t.steps.length }} pasos</span>
+          <span>👁 {{ t.views }}</span>
+          <span class="row">
+            <app-star-rating [value]="t.ratingAvg" /> {{ t.ratingAvg }} ({{ t.ratingCount }})
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="page">
+    <div class="container layout">
+      <div class="main stack">
+        <div class="row actions">
+          <button type="button" class="btn btn-outline btn-sm" (click)="toggleFavorite()">
+            {{ isFavorite() ? '♥ Guardado' : '♡ Guardar' }}
+          </button>
+          @if (t.videoUrl) {
+            <a class="btn btn-ghost btn-sm" [href]="t.videoUrl" target="_blank" rel="noopener">▶ Ver video</a>
+          }
+          @if (canManage()) {
+            <a class="btn btn-ghost btn-sm" [routerLink]="['/tutoriales', t._id, 'editar']">✏️ Editar</a>
+            <button type="button" class="btn btn-danger btn-sm" (click)="deleteTutorial()">🗑 Eliminar</button>
+          }
+        </div>
+
+        @if (t.description) {
+          <div class="card"><p class="desc">{{ t.description }}</p></div>
+        }
+
+        <div class="card">
+          <div class="row between">
+            <h2>Paso a paso</h2>
+            @if (auth.isLoggedIn()) {
+              <span class="muted small">{{ completed().length }} de {{ t.steps.length }} completados</span>
+            }
+          </div>
+          @if (auth.isLoggedIn()) {
+            <div class="progress"><span [style.width.%]="percent()"></span></div>
+          } @else {
+            <p class="muted small"><a routerLink="/acceder" [queryParams]="{ returnUrl: '/tutoriales/' + t._id }">Inicia sesión</a> para guardar tu progreso.</p>
+          }
+
+          <ol class="steps">
+            @for (s of t.steps; track s.order) {
+              <li class="step" [class.done]="isDone(s.order)">
+                <button type="button" class="check" [attr.aria-label]="'Marcar paso ' + s.order" (click)="toggleStep(s.order)">
+                  {{ isDone(s.order) ? '✓' : s.order }}
+                </button>
+                <div>
+                  <h3>{{ s.title }}</h3>
+                  <p>{{ s.description }}</p>
+                  @if (s.imageUrl) { <img class="step-img" [src]="s.imageUrl" [alt]="s.title" loading="lazy" /> }
+                  @if (s.tip) { <p class="tip">💡 {{ s.tip }}</p> }
+                </div>
+              </li>
+            }
+          </ol>
+        </div>
+
+        <div class="card">
+          <h2>Valoraciones</h2>
+          @if (auth.isLoggedIn() && !isAuthor()) {
+            <div class="my-review">
+              <p class="small muted">Tu calificación</p>
+              <app-star-rating [value]="myRating()" [editable]="true" (rate)="myRating.set($event)" />
+              <textarea class="input" rows="2" placeholder="Cuéntanos cómo te fue (opcional)" [(ngModel)]="myReviewText"></textarea>
+              <button type="button" class="btn btn-primary btn-sm" (click)="sendReview()">Publicar valoración</button>
+            </div>
+          } @else if (!auth.isLoggedIn()) {
+            <p class="muted small"><a routerLink="/acceder" [queryParams]="{ returnUrl: '/tutoriales/' + t._id }">Inicia sesión</a> para calificar este tutorial.</p>
+          }
+
+          @for (r of reviews(); track r._id) {
+            <div class="review">
+              <div class="row between">
+                <strong>{{ r.userName }}</strong>
+                <span class="row">
+                  <app-star-rating [value]="r.rating" />
+                  @if (auth.user()?.id === r.userId || auth.isAdmin()) {
+                    <button type="button" class="link-btn" (click)="deleteReview(r._id)">Eliminar</button>
+                  }
+                </span>
+              </div>
+              @if (r.comment) { <p>{{ r.comment }}</p> }
+              <span class="muted small">{{ r.createdAt | date: 'mediumDate' }}</span>
+            </div>
+          } @empty {
+            <p class="muted">Aún no hay valoraciones.</p>
+          }
+        </div>
+
+        <div class="card">
+          <h2>Comentarios y dudas ({{ comments().length }})</h2>
+          @if (auth.isLoggedIn()) {
+            <textarea class="input" rows="2" placeholder="Escribe un comentario o una pregunta…" [(ngModel)]="newComment"></textarea>
+            <button type="button" class="btn btn-primary btn-sm send" (click)="sendComment()">Comentar</button>
+          } @else {
+            <p class="muted small"><a routerLink="/acceder" [queryParams]="{ returnUrl: '/tutoriales/' + t._id }">Inicia sesión</a> para participar.</p>
+          }
+
+          @for (c of rootComments(); track c._id) {
+            <div class="comment">
+              <div class="row between">
+                <strong>{{ c.authorName }}</strong>
+                <span class="muted small">{{ c.createdAt | date: 'medium' }}</span>
+              </div>
+              <p>{{ c.message }}</p>
+              <div class="row">
+                @if (auth.isLoggedIn()) {
+                  <button type="button" class="link-btn" (click)="replyTo.set(replyTo() === c._id ? null : c._id)">Responder</button>
+                }
+                @if (canDeleteComment(c)) {
+                  <button type="button" class="link-btn" (click)="deleteComment(c._id)">Eliminar</button>
+                }
+              </div>
+
+              @for (r of repliesOf(c._id); track r._id) {
+                <div class="comment reply">
+                  <div class="row between">
+                    <strong>{{ r.authorName }}</strong>
+                    <span class="muted small">{{ r.createdAt | date: 'medium' }}</span>
+                  </div>
+                  <p>{{ r.message }}</p>
+                  @if (canDeleteComment(r)) {
+                    <button type="button" class="link-btn" (click)="deleteComment(r._id)">Eliminar</button>
+                  }
+                </div>
+              }
+
+              @if (replyTo() === c._id) {
+                <div class="reply-box">
+                  <textarea class="input" rows="2" placeholder="Escribe tu respuesta…" [(ngModel)]="replyText"></textarea>
+                  <button type="button" class="btn btn-primary btn-sm" (click)="sendComment(c._id)">Responder</button>
+                </div>
+              }
+            </div>
+          } @empty {
+            <p class="muted">Sé la primera persona en comentar.</p>
+          }
+        </div>
+      </div>
+
+      <aside class="side stack">
+        <div class="card">
+          <h3>Productos que necesitas</h3>
+          @for (p of t.products; track p._id) {
+            <div class="product">
+              <strong>{{ p.name }}</strong>
+              <span class="muted small">{{ p.brand }}@if (p.price) { · {{ p.price | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} }</span>
+            </div>
+          } @empty {
+            <p class="muted small">Este tutorial no lista productos específicos.</p>
+          }
+          <a routerLink="/mi-kit" class="small">Revisar mi kit →</a>
+        </div>
+
+        @if (t.tags.length) {
+          <div class="card">
+            <h3>Etiquetas</h3>
+            <div class="row">
+              @for (tag of t.tags; track tag) {
+                <a class="chip" routerLink="/explorar" [queryParams]="{ search: tag }">#{{ tag }}</a>
+              }
+            </div>
+          </div>
+        }
+      </aside>
+    </div>
+  </div>
+}

@@ -1,0 +1,102 @@
+<div class="page">
+  <div class="container">
+    <div class="page-header row between">
+      <div>
+        <h1>Hola, {{ auth.user()?.name }} 💖</h1>
+        <p>Este es tu espacio para aprender y compartir.</p>
+      </div>
+      <a routerLink="/tutoriales/nuevo" class="btn btn-primary">+ Compartir tutorial</a>
+    </div>
+
+    <div class="grid kpis">
+      <div class="card center"><h2>{{ inProgress().length }}</h2><span class="muted">En progreso</span></div>
+      <div class="card center"><h2>{{ completedCount() }}</h2><span class="muted">Completados</span></div>
+      <div class="card center"><h2>{{ saved().length }}</h2><span class="muted">Guardados</span></div>
+      <div class="card center"><h2>{{ mine().length }}</h2><span class="muted">Publicados por ti</span></div>
+    </div>
+
+    <div class="tabs">
+      <button type="button" class="tab" [class.active]="tab() === 'progress'" (click)="tab.set('progress')">Mi progreso</button>
+      <button type="button" class="tab" [class.active]="tab() === 'saved'" (click)="tab.set('saved')">Guardados</button>
+      <button type="button" class="tab" [class.active]="tab() === 'mine'" (click)="tab.set('mine')">Mis tutoriales</button>
+      <button type="button" class="tab" [class.active]="tab() === 'activity'" (click)="tab.set('activity')">Actividad</button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading">Cargando…</div>
+    } @else {
+      @switch (tab()) {
+        @case ('progress') {
+          @if (progress().length === 0) {
+            <div class="empty">
+              <span class="emoji">🌱</span>
+              Todavía no has empezado ningún tutorial.
+              <p><a routerLink="/explorar" class="btn btn-primary">Buscar un tutorial</a></p>
+            </div>
+          } @else {
+            <div class="stack">
+              @for (p of progress(); track p.tutorialId) {
+                <a class="card row between prog" [routerLink]="['/tutoriales', p.tutorialId]">
+                  <div>
+                    <strong>{{ p.tutorial.title }}</strong>
+                    <div class="muted small">{{ p.tutorial.level | levelLabel }} · por {{ p.tutorial.authorName }}</div>
+                  </div>
+                  <div class="bar">
+                    <div class="progress"><span [style.width.%]="p.percent"></span></div>
+                    <span class="small muted">
+                      {{ p.status === 'completed' ? '✓ Completado' : p.percent + '% · ' + p.completedSteps.length + '/' + p.totalSteps + ' pasos' }}
+                    </span>
+                  </div>
+                </a>
+              }
+            </div>
+          }
+        }
+        @case ('saved') {
+          @if (saved().length === 0) {
+            <div class="empty"><span class="emoji">💗</span>Aún no guardas tutoriales. Usa el botón “Guardar” para encontrarlos aquí.</div>
+          } @else {
+            <div class="grid">
+              @for (t of saved(); track t._id) { <app-tutorial-card [tutorial]="t" /> }
+            </div>
+          }
+        }
+        @case ('mine') {
+          @if (mine().length === 0) {
+            <div class="empty">
+              <span class="emoji">🎬</span>
+              No has publicado tutoriales todavía.
+              <p><a routerLink="/tutoriales/nuevo" class="btn btn-primary">Crear mi primer tutorial</a></p>
+            </div>
+          } @else {
+            <div class="grid">
+              @for (t of mine(); track t._id) {
+                <div class="stack">
+                  <app-tutorial-card [tutorial]="t" />
+                  <div class="row">
+                    <a class="btn btn-ghost btn-sm" [routerLink]="['/tutoriales', t._id, 'editar']">✏️ Editar</a>
+                    <button type="button" class="btn btn-danger btn-sm" (click)="deleteMine(t)">🗑 Eliminar</button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+        @case ('activity') {
+          @if (activity().length === 0) {
+            <div class="empty"><span class="emoji">🕒</span>Tu actividad reciente aparecerá aquí.</div>
+          } @else {
+            <div class="card">
+              @for (a of activity(); track a._id) {
+                <div class="row between act">
+                  <span>{{ a.description }}</span>
+                  <span class="muted small">{{ a.createdAt | date: 'medium' }}</span>
+                </div>
+              }
+            </div>
+          }
+        }
+      }
+    }
+  </div>
+</div>

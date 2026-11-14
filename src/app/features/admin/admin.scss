@@ -1,0 +1,7 @@
+.form { margin-bottom: 1.25rem; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.actions { white-space: nowrap; text-align: right; }
+td select.input { max-width: 190px; padding: 0.35rem 0.6rem; }
